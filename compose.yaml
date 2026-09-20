@@ -1,0 +1,108 @@
+name: noteboard
+
+# Якоря убирают копипасту: логи и политика перезапуска одинаковы у всех
+# сервисов, а описаны один раз.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-service: &service
+  restart: unless-stopped
+  logging: *logging
+  security_opt:
+    - no-new-privileges:true
+  networks: [noteboard]
+
+services:
+  app:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: noteboard:local
+    pull_policy: build
+    ports:
+      - "${PORT:-8080}:8080"
+    # Переменные можно держать в .env рядом; файл необязателен.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATA_DIR: /data
+      # Расшифровка идёт в соседний контейнер по OpenAI-совместимому API
+      TRANSCRIBE_API_URL: http://stt:8000/v1/audio/transcriptions
+      TRANSCRIBE_MODEL: ${STT_MODEL:-deepdml/faster-whisper-large-v3-turbo-ct2}
+      TRANSCRIBE_LANG: ${STT_LANG:-ru}
+      # Затравка: задаёт стиль и словарь. Даже общая фраза заметно помогает —
+      # возвращает пунктуацию, заглавные и технические термины вместо созвучной
+      # чепухи. Свои имена и названия дописывать сюда через STT_PROMPT.
+      TRANSCRIBE_PROMPT: ${STT_PROMPT:-Рабочая заметка на русском языке. Текст с пунктуацией и заглавными буквами, технические термины и названия записаны правильно.}
+      # Имена, которые модель иначе переводит на слух ("хомпейдж" вместо
+      # HomePage). Работают лучше, чем те же слова внутри prompt: turbo с
+      # hotwords узнаёт все названия, без них — ни одного. Свой список сюда.
+      TRANSCRIBE_HOTWORDS: ${STT_HOTWORDS:-InfoKiosk, TaskComponent, Helmet, MCComponent, AppSettings, HomePage, DockerFileConverter}
+      # Отрезает тишину и шум — меньше галлюцинаций на паузах
+      TRANSCRIBE_VAD: "true"
+    volumes:
+      - data:/data
+    # Бинарник не пишет мимо /data, поэтому корень можно закрыть на запись.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    cap_drop: [ALL]
+    init: true
+    stop_grace_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 512M
+    depends_on:
+      stt-init:
+        condition: service_completed_successfully
+
+  # Один раз качает модель в общий кэш: без этого speaches отвечает 404.
+  # Контейнер отрабатывает и завершается, app ждёт именно успешного кода.
+  stt-init:
+    image: curlimages/curl:8.11.1
+    networks: [noteboard]
+    logging: *logging
+    environment:
+      STT_MODEL: ${STT_MODEL:-deepdml/faster-whisper-large-v3-turbo-ct2}
+    command: >-
+      -fsS --retry 5 --retry-connrefused --retry-delay 5 --max-time 1800
+      -X POST -o /dev/null -w "модель готова: %{http_code}\n"
+      http://stt:8000/v1/models/${STT_MODEL:-deepdml/faster-whisper-large-v3-turbo-ct2}
+    depends_on:
+      stt:
+        condition: service_healthy
+    restart: "no"
+
+  stt:
+    <<: *service
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    pull_policy: missing
+    environment:
+      ENABLE_UI: "false"
+      # Выгружать модель из памяти после 5 минут простоя
+      WHISPER__TTL: "300"
+    volumes:
+      # Кэш моделей Hugging Face: модель качается один раз
+      - models:/home/ubuntu/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    init: true
+    stop_grace_period: 30s
+
+networks:
+  noteboard:
+
+volumes:
+  data:
+  models:

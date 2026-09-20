@@ -1,0 +1,10 @@
+.git
+bin/
+data/
+README.md
+web/node_modules
+web/.nuxt
+web/.output
+internal/webui/dist
+_legacy/
+.playwright-mcp

@@ -1,0 +1,144 @@
+// Контракт API. Из этого файла генерируются и Go-сервер, и TypeScript-клиент,
+// поэтому он — единственный источник правды о форме данных.
+//
+// Статусы расшифровки оставлены строкой, а не enum: enum в proto требует
+// префиксов (TRANSCRIBE_STATUS_DONE) и таблицы перевода на обеих сторонах,
+// а выигрыш нулевой — значения всё равно приходят из базы строками.
+syntax = "proto3";
+
+package noteboard.v1;
+
+option go_package = "noteboard/internal/gen/noteboard/v1;noteboardv1";
+
+message Note {
+  int64 id = 1;
+  string title = 2;
+  string body = 3;
+  string audio_path = 4;
+  string transcript = 5;
+  string transcribe_status = 6;
+  string transcribe_error = 7;
+  bool pinned = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message Card {
+  int64 id = 1;
+  int64 column_id = 2;
+  string title = 3;
+  string body = 4;
+  double position = 5;
+  optional int64 note_id = 6;
+  string note_title = 7;
+  string note_status = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message Column {
+  int64 id = 1;
+  string title = 2;
+  double position = 3;
+  repeated Card cards = 4;
+}
+
+// ---- notes
+
+message ListNotesRequest { string query = 1; }
+message ListNotesResponse { repeated Note notes = 1; }
+
+message GetNoteRequest { int64 id = 1; }
+message GetNoteResponse { Note note = 1; }
+
+message CreateNoteRequest {
+  string title = 1;
+  string body = 2;
+}
+message CreateNoteResponse { Note note = 1; }
+
+// optional = поле с presence: клиент шлёт только то, что меняет.
+message UpdateNoteRequest {
+  int64 id = 1;
+  optional string title = 2;
+  optional string body = 3;
+  optional string transcript = 4;
+  optional bool pinned = 5;
+}
+message UpdateNoteResponse { Note note = 1; }
+
+message DeleteNoteRequest { int64 id = 1; }
+message DeleteNoteResponse {}
+
+message RetranscribeRequest { int64 id = 1; }
+message RetranscribeResponse { Note note = 1; }
+
+service NotesService {
+  rpc ListNotes(ListNotesRequest) returns (ListNotesResponse);
+  rpc GetNote(GetNoteRequest) returns (GetNoteResponse);
+  rpc CreateNote(CreateNoteRequest) returns (CreateNoteResponse);
+  rpc UpdateNote(UpdateNoteRequest) returns (UpdateNoteResponse);
+  rpc DeleteNote(DeleteNoteRequest) returns (DeleteNoteResponse);
+  rpc Retranscribe(RetranscribeRequest) returns (RetranscribeResponse);
+}
+
+// ---- board
+
+message GetBoardRequest {}
+message GetBoardResponse { repeated Column columns = 1; }
+
+message CreateColumnRequest { string title = 1; }
+message CreateColumnResponse { Column column = 1; }
+
+message RenameColumnRequest {
+  int64 id = 1;
+  string title = 2;
+}
+message RenameColumnResponse {}
+
+message DeleteColumnRequest { int64 id = 1; }
+message DeleteColumnResponse {}
+
+message CreateCardRequest {
+  int64 column_id = 1;
+  string title = 2;
+  string body = 3;
+  optional int64 note_id = 4;
+}
+message CreateCardResponse { Card card = 1; }
+
+message AttachNoteRequest {
+  int64 note_id = 1;
+  int64 column_id = 2;
+}
+message AttachNoteResponse { Card card = 1; }
+
+message UpdateCardRequest {
+  int64 id = 1;
+  optional string title = 2;
+  optional string body = 3;
+  optional int64 note_id = 4;
+}
+message UpdateCardResponse {}
+
+message DeleteCardRequest { int64 id = 1; }
+message DeleteCardResponse {}
+
+message ColumnOrder {
+  int64 column_id = 1;
+  repeated int64 card_ids = 2;
+}
+message ReorderRequest { repeated ColumnOrder columns = 1; }
+message ReorderResponse {}
+
+service BoardService {
+  rpc GetBoard(GetBoardRequest) returns (GetBoardResponse);
+  rpc CreateColumn(CreateColumnRequest) returns (CreateColumnResponse);
+  rpc RenameColumn(RenameColumnRequest) returns (RenameColumnResponse);
+  rpc DeleteColumn(DeleteColumnRequest) returns (DeleteColumnResponse);
+  rpc CreateCard(CreateCardRequest) returns (CreateCardResponse);
+  rpc AttachNote(AttachNoteRequest) returns (AttachNoteResponse);
+  rpc UpdateCard(UpdateCardRequest) returns (UpdateCardResponse);
+  rpc DeleteCard(DeleteCardRequest) returns (DeleteCardResponse);
+  rpc Reorder(ReorderRequest) returns (ReorderResponse);
+}

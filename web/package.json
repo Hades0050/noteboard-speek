@@ -1,0 +1,31 @@
+{
+  "name": "noteboard-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.15.0",
+    "@connectrpc/connect": "^2.2.0",
+    "@connectrpc/connect-web": "^2.2.0",
+    "@formkit/drag-and-drop": "^0.6.1",
+    "@iconify-json/lucide": "^1.2.135",
+    "@nuxt/ui": "^4",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-link": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "@tiptap/vue-3": "^3.31.3",
+    "nuxt": "^4.2.1",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^2.15.0",
+    "typescript": "^7.0.2"
+  }
+}

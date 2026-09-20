@@ -1,0 +1,21 @@
+export default defineNuxtConfig({
+  compatibilityDate: '2026-09-20',
+  ssr: false,
+  modules: ['@nuxt/ui'],
+  devtools: { enabled: false },
+  css: ['~/assets/css/main.css'],
+  nitro: {
+    devProxy: {
+      '/api': { target: 'http://localhost:8080/api', changeOrigin: true },
+    },
+  },
+  app: {
+    head: {
+      title: 'noteboard',
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'color-scheme', content: 'light dark' },
+      ],
+    },
+  },
+})

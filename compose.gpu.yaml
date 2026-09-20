@@ -1,0 +1,30 @@
+# docker compose -f compose.yaml -f compose.gpu.yaml up -d
+# Нужен NVIDIA Container Toolkit. Модель та же turbo, но на GPU и в float16.
+services:
+  stt:
+    image: ghcr.io/speaches-ai/speaches:latest-cuda
+    environment:
+      WHISPER__COMPUTE_TYPE: float16
+      # Модель висит в видеопамяти, а не выгружается после каждой заметки:
+      # иначе первая заметка после паузы ждёт загрузку ~10 с.
+      WHISPER__TTL: "-1"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Качает ту же модель, что просит app, иначе speaches ответит 404.
+  stt-init:
+    environment:
+      STT_MODEL: ${STT_MODEL:-deepdml/faster-whisper-large-v3-turbo-ct2}
+    command: >-
+      -fsS --retry 5 --retry-connrefused --retry-delay 5 --max-time 1800
+      -X POST -o /dev/null -w "модель готова: %{http_code}\n"
+      http://stt:8000/v1/models/${STT_MODEL:-deepdml/faster-whisper-large-v3-turbo-ct2}
+
+  app:
+    environment:
+      TRANSCRIBE_MODEL: ${STT_MODEL:-deepdml/faster-whisper-large-v3-turbo-ct2}

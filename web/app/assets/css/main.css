@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+@plugin "@tailwindcss/typography";
+
+/* Состояние перетаскивания приходит от @formkit/drag-and-drop по имени класса. */
+.kcard.dragging {
+  opacity: .4;
+}

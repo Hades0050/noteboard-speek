@@ -1,0 +1,16 @@
+version: v2
+clean: true
+plugins:
+  # Go: типы сообщений + Connect-обвязка сервера.
+  - local: protoc-gen-go
+    out: internal/gen
+    opt: paths=source_relative
+  - local: protoc-gen-connect-go
+    out: internal/gen
+    opt: paths=source_relative
+  # TypeScript для Nuxt: protoc-gen-es v2 генерирует и типы, и дескрипторы сервисов.
+  - local: ./web/node_modules/.bin/protoc-gen-es
+    out: web/app/gen
+    opt: target=ts
+inputs:
+  - directory: api/proto

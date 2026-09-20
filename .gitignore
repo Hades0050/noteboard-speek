@@ -1,0 +1,44 @@
+# Сборка Go
+bin/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Данные приложения: sqlite, загруженные файлы, аудио
+data/
+
+# Секреты (.env.example — в репозитории)
+.env
+.env.*
+!.env.example
+
+# Nuxt / Bun
+node_modules/
+web/.nuxt/
+web/.output/
+web/.data/
+web/dist
+web/.nitro/
+web/.cache/
+*.log
+.npm/
+.yarn/
+
+# Собранный фронтенд, вшиваемый в бинарник через go:embed (см. make web)
+internal/webui/dist/*
+!internal/webui/dist/.gitkeep
+
+# Инструменты и временные артефакты
+.playwright-mcp/
+_legacy/
+tmp/
+*.tmp
+
+# Редакторы и ОС
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
