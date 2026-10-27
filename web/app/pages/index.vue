@@ -40,12 +40,8 @@ watch([noteId, cardId], ([n, c]) => {
   if (n === null && c === null) load()
 })
 
-let commitTimer: ReturnType<typeof setTimeout> | null = null
-
 function onOrder(columnId: bigint, cards: Card[]) {
   local[String(columnId)] = cards.map(c => c.id)
-  if (commitTimer) clearTimeout(commitTimer)
-  commitTimer = setTimeout(commit, 250)
 }
 
 async function commit() {
@@ -133,7 +129,6 @@ async function addColumn() {
 }
 
 onMounted(load)
-onBeforeUnmount(() => { if (commitTimer) clearTimeout(commitTimer) })
 </script>
 
 <template>
@@ -161,6 +156,7 @@ onBeforeUnmount(() => { if (commitTimer) clearTimeout(commitTimer) })
           :key="String(c.id)"
           :column="c"
           @order="onOrder"
+          @drop="commit"
           @add-card="addCard"
           @new-note="newNoteIn"
           @pick-note="openPicker"

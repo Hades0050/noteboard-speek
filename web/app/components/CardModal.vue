@@ -67,11 +67,16 @@ async function promote() {
 </script>
 
 <template>
-  <UModal v-model:open="open" :title="title || 'Карточка'" :fullscreen="mobile">
+  <UModal
+    v-model:open="open"
+    :title="title || 'Карточка'"
+    :fullscreen="mobile"
+    :ui="{ content: 'sm:max-w-6xl sm:h-[85dvh]', body: 'flex flex-col', footer: 'flex-wrap' }"
+  >
     <template #body>
-      <div class="space-y-3">
-        <UInput v-model="title" placeholder="Заголовок" size="lg" autofocus class="w-full" />
-        <UTextarea v-model="body" placeholder="Описание" :rows="5" class="w-full" />
+      <div class="flex flex-1 flex-col gap-4">
+        <UInput v-model="title" placeholder="Заголовок" size="xl" autofocus class="w-full" />
+        <UTextarea v-model="body" placeholder="Описание" :rows="14" class="w-full flex-1" :ui="{ base: 'h-full resize-none' }" />
       </div>
     </template>
 

@@ -21,6 +21,8 @@ web/.data/
 web/dist
 web/.nitro/
 web/.cache/
+web/test-results/
+web/playwright-report/
 *.log
 .npm/
 .yarn/

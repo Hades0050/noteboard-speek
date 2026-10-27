@@ -184,8 +184,44 @@ function insertTranscript() {
     v-model:open="open"
     :title="title || 'Новая задача'"
     :fullscreen="mobile"
-    :ui="{ content: 'max-w-3xl' }"
+    :ui="{
+      content: 'sm:max-w-6xl sm:h-[85dvh]',
+      wrapper: 'min-w-0 flex-1',
+      title: 'truncate',
+      close: 'static shrink-0',
+      footer: 'flex-wrap justify-end',
+    }"
   >
+    <template #actions>
+      <div v-if="note" class="flex shrink-0 items-center gap-1">
+        <UDropdownMenu :items="boardItems" @update:open="loadColumns">
+          <UButton
+            label="На доску"
+            icon="i-lucide-kanban"
+            color="neutral"
+            variant="subtle"
+            trailing-icon="i-lucide-chevron-down"
+          />
+        </UDropdownMenu>
+
+        <UButton
+          :icon="note.pinned ? 'i-lucide-pin-off' : 'i-lucide-pin'"
+          color="neutral"
+          variant="ghost"
+          :aria-label="note.pinned ? 'Открепить' : 'Закрепить'"
+          @click="togglePin"
+        />
+
+        <UButton
+          icon="i-lucide-trash-2"
+          color="error"
+          variant="ghost"
+          aria-label="Удалить"
+          @click="destroy"
+        />
+      </div>
+    </template>
+
     <template #body>
       <UAlert v-if="loadError" color="error" variant="subtle" :description="loadError" />
 
@@ -203,6 +239,7 @@ function insertTranscript() {
         <NoteEditor
           ref="editor"
           v-model="body"
+          class="[&_.tiptap]:min-h-80"
           placeholder="Описание задачи. Картинку можно вставить из буфера или перетащить. Или нажми «Записать голос»."
         />
 
@@ -258,56 +295,31 @@ function insertTranscript() {
     </template>
 
     <template #footer>
-      <UButton
-        label="Сохранить"
-        icon="i-lucide-check"
-        :loading="busy"
-        :disabled="!canSave || recording"
-        @click="save"
-      />
+      <span v-if="note" class="mr-auto w-full text-xs text-dimmed sm:w-auto">изменено {{ formatDate(note.updatedAt) }}</span>
 
-      <UButton
-        :label="recording ? `Стоп ${mmss(seconds)}` : note?.audioPath ? 'Перезаписать голос' : 'Записать голос'"
-        :icon="recording ? 'i-lucide-square' : 'i-lucide-mic'"
-        :color="recording ? 'error' : 'neutral'"
-        variant="subtle"
-        :disabled="busy || !supported"
-        @click="toggleRecord"
-      />
-
-      <UButton v-if="recording" label="Отменить" color="neutral" variant="ghost" @click="cancel" />
-
-      <div class="grow" />
-
-      <template v-if="note">
-        <span class="text-xs text-dimmed">изменено {{ formatDate(note.updatedAt) }}</span>
-
-        <UDropdownMenu :items="boardItems" @update:open="loadColumns">
-          <UButton
-            label="На доску"
-            icon="i-lucide-kanban"
-            color="neutral"
-            variant="subtle"
-            trailing-icon="i-lucide-chevron-down"
-          />
-        </UDropdownMenu>
+      <div class="ml-auto flex min-w-0 max-w-full items-center gap-1.5">
+        <UButton v-if="recording" label="Отменить" color="neutral" variant="ghost" @click="cancel" />
 
         <UButton
-          :icon="note.pinned ? 'i-lucide-pin-off' : 'i-lucide-pin'"
-          color="neutral"
-          variant="ghost"
-          :aria-label="note.pinned ? 'Открепить' : 'Закрепить'"
-          @click="togglePin"
+          :label="recording ? `Стоп ${mmss(seconds)}` : note?.audioPath ? 'Перезаписать голос' : 'Записать голос'"
+          :icon="recording ? 'i-lucide-square' : 'i-lucide-mic'"
+          :color="recording ? 'error' : 'neutral'"
+          variant="subtle"
+          class="min-w-0"
+          :ui="{ label: 'truncate' }"
+          :disabled="busy || !supported"
+          @click="toggleRecord"
         />
 
         <UButton
-          icon="i-lucide-trash-2"
-          color="error"
-          variant="ghost"
-          aria-label="Удалить"
-          @click="destroy"
+          label="Сохранить"
+          icon="i-lucide-check"
+          class="shrink-0"
+          :loading="busy"
+          :disabled="!canSave || recording"
+          @click="save"
         />
-      </template>
+      </div>
     </template>
   </UModal>
 </template>

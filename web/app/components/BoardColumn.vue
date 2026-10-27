@@ -6,6 +6,7 @@ import type { Card, Column } from '~/types'
 const props = defineProps<{ column: Column }>()
 const emit = defineEmits<{
   order: [columnId: bigint, cards: Card[]]
+  drop: []
   addCard: [columnId: bigint, title: string]
   newNote: [columnId: bigint]
   pickNote: [columnId: bigint]
@@ -18,12 +19,16 @@ const emit = defineEmits<{
 // поэтому карточка берётся удержанием.
 const [dropzone, cards] = useDragAndDrop<Card>([...props.column.cards], {
   group: 'kanban',
-  dragHandle: '.handle',
   dropZoneClass: 'dragging',
   longPress: true,
   longPressDuration: 300,
   longPressClass: 'long-press',
   plugins: [animations()],
+  onDragend: async () => {
+    // Дождаться order от обеих колонок; перечитывание во время drag создаёт дубли.
+    await nextTick()
+    emit('drop')
+  },
 })
 
 watch(() => props.column.cards, (v) => { cards.value = [...v] })
@@ -84,34 +89,29 @@ const menu = [[
       <article
         v-for="card in cards"
         :key="String(card.id)"
-        class="kcard group flex min-w-0 cursor-pointer flex-col gap-1 rounded-md border border-default bg-default p-2 shadow-xs hover:border-primary/60"
+        class="kcard group flex min-w-0 cursor-grab select-none flex-col gap-3 rounded-lg border border-default bg-default p-3.5 shadow-xs transition-[border-color,box-shadow] hover:border-primary/50 hover:shadow-md active:cursor-grabbing"
         @click="emit('open', card)"
       >
-        <div class="flex min-w-0 items-center gap-1.5">
-          <UIcon
-            name="i-lucide-grip-vertical"
-            class="handle -m-1.5 box-content size-4 shrink-0 cursor-grab p-1.5 text-dimmed active:cursor-grabbing"
-            @click.stop
-          />
-          <UIcon
-            v-if="card.noteId"
-            name="i-lucide-notebook-pen"
-            class="size-3.5 shrink-0 text-dimmed"
-          />
-          <span class="min-w-0 grow break-words text-sm">
+        <div class="flex min-w-0 items-start gap-2.5">
+          <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-elevated text-muted">
+            <UIcon :name="card.noteId ? 'i-lucide-notebook-pen' : 'i-lucide-square-check'" class="size-4" />
+          </span>
+          <span class="min-w-0 grow break-words pt-0.5 text-sm font-medium leading-5 text-highlighted">
             {{ card.noteTitle || card.title || 'Без названия' }}
           </span>
         </div>
-        <p v-if="card.body" class="line-clamp-3 break-words text-xs text-muted">
+        <p v-if="card.body" class="line-clamp-3 break-words text-sm leading-5 text-muted">
           {{ card.body }}
         </p>
-        <UBadge
-          v-if="card.noteStatus && statusMeta(card.noteStatus)"
-          v-bind="statusMeta(card.noteStatus)!"
-          variant="subtle"
-          size="sm"
-          class="self-start"
-        />
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-default/60 pt-2">
+          <span class="text-xs text-dimmed">{{ card.noteId ? 'Задача' : 'Карточка' }}</span>
+          <UBadge
+            v-if="card.noteStatus && statusMeta(card.noteStatus)"
+            v-bind="statusMeta(card.noteStatus)!"
+            variant="subtle"
+            size="sm"
+          />
+        </div>
       </article>
     </div>
 
