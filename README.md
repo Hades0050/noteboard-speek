@@ -11,7 +11,7 @@ API описан в `.proto` и ходит через **ConnectRPC** (gRPC дл�
 
 ```sh
 docker compose up -d      # app + локальный STT (speaches, CPU)
-# http://localhost:8080
+# http://localhost:8081
 ```
 
 Три сервиса:
@@ -26,7 +26,7 @@ docker compose up -d      # app + локальный STT (speaches, CPU)
 дальше всё локально и офлайн. Порт меняется через `PORT`, модель — через `STT_MODEL`:
 
 ```sh
-PORT=8081 STT_MODEL=Systran/faster-whisper-small docker compose up -d   # быстрее, но врёт
+PORT=8082 STT_MODEL=Systran/faster-whisper-small docker compose up -d   # быстрее, но врёт
 ```
 
 Имена собственные и термины модель коверкает — заменяет созвучной чепухой
@@ -99,7 +99,38 @@ docker compose -f compose.yaml -f compose.gpu.yaml up -d
 первая заметка после паузы ждёт загрузку ~10 с) и подсовывает `stt-init` ту же
 модель, что просит `app`. Первый запуск качает образ CUDA и модель (~1,6 ГБ).
 
-## Быстрый старт — без Docker
+## Windows-приложение — без Docker
+
+Сборка предназначена для Windows 10/11 x64. Установщик включает WebView2;
+Docker, Go, Python, ffmpeg и отдельный сервер пользователю не нужны.
+
+Получить установщик: после публикации изменений открыть GitHub Actions →
+**Windows installer** → **Run workflow**, скачать артефакт
+`noteboard-windows-x64`, распаковать и запустить `*-setup.exe`.
+Сборка не подписана: Windows SmartScreen может показать предупреждение.
+
+При первом запуске разрешить микрофон в настройках Windows и скачать модель
+кнопкой **Скачать** в окне «Распознавание речи» (~330 МБ, нужен интернет).
+Затем запись и расшифровка работают локально. Здесь используется GigaAM через
+Sherpa-ONNX, а не Whisper из Docker-версии: качество может отличаться.
+Заметки и модель хранятся в каталоге приложения в `%APPDATA%\\ru.vlad.noteboard`.
+Данные Docker-версии автоматически не переносятся.
+
+Для самостоятельной сборки на Windows нужны Bun, Rust (MSVC), Visual Studio
+Build Tools с компонентом **Desktop development with C++** и Windows SDK:
+
+```powershell
+cd web
+bun install --frozen-lockfile
+bun run desktop:build
+```
+
+Результат: `web/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe`.
+Готовность записи и расшифровки на чистой Windows требует отдельной проверки:
+установить пакет, скачать модель, записать заметку, дождаться текста и проверить
+сохранность заметки после перезапуска.
+
+## Быстрый старт — Go-сервер без Docker
 
 ```sh
 make all        # bun install + nuxt generate + go build -> bin/noteboard
@@ -253,7 +284,7 @@ WHISPER_MODEL=/opt/whisper.cpp/models/ggml-large-v3-turbo.bin
 | `TRANSCRIBE_HOTWORDS` | — | те же слова, но точнее; понимает faster-whisper, не OpenAI |
 | `TRANSCRIBE_VAD` | — | `true` — резать тишину, меньше галлюцинаций на паузах |
 | `FFMPEG_BIN` | `ffmpeg` | путь к ffmpeg |
-| `PORT` | `8080` | только для compose: внешний порт |
+| `PORT` | `8081` | только для compose: внешний порт |
 | `STT_MODEL` | `deepdml/faster-whisper-large-v3-turbo-ct2` | только для compose: модель speaches |
 | `STT_PROMPT` | общая фраза о заметке | только для compose: значение `TRANSCRIBE_PROMPT` |
 | `STT_HOTWORDS` | список имён проектов | только для compose: значение `TRANSCRIBE_HOTWORDS` |

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt generate",
-    "preview": "nuxt preview"
+    "preview": "nuxt preview",
+    "desktop:build": "tauri build --target x86_64-pc-windows-msvc --bundles nsis -- --locked"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.15.0",

@@ -24,7 +24,7 @@ services:
     image: noteboard:local
     pull_policy: build
     ports:
-      - "${PORT:-8080}:8080"
+      - "${PORT:-8081}:8080"
     # Переменные можно держать в .env рядом; файл необязателен.
     env_file:
       - path: .env

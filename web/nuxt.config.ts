@@ -2,6 +2,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-09-20',
   ssr: false,
   modules: ['@nuxt/ui'],
+  // Не обращаться к внешним провайдерам шрифтов при офлайн-сборке.
+  ui: { fonts: false },
   // Приложение работает офлайн: иконки должны лежать в бандле, а не
   // подгружаться из Iconify API.
   icon: {

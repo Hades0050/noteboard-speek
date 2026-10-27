@@ -1,0 +1,16 @@
+{
+  "bundle": {
+    "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      },
+      "nsis": {
+        "languages": [
+          "Russian",
+          "English"
+        ],
+        "displayLanguageSelector": true
+      }
+    }
+  }
+}
