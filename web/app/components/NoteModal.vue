@@ -7,6 +7,7 @@ const { noteId, closeModal } = useModals()
 const { update, remove, retry, uploadAudio, load } = useNotes()
 const { recording, seconds, error: recError, supported, start, stop, cancel } = useRecorder()
 const toast = useToast()
+const mobile = useIsMobile()
 
 function notify(title: string, icon = 'i-lucide-check', color: 'success' | 'error' | 'info' = 'success') {
   toast.add({ title, icon, color })
@@ -182,6 +183,7 @@ function insertTranscript() {
   <UModal
     v-model:open="open"
     :title="title || 'Новая задача'"
+    :fullscreen="mobile"
     :ui="{ content: 'max-w-3xl' }"
   >
     <template #body>
@@ -217,7 +219,7 @@ function insertTranscript() {
               controls
               preload="none"
               class="h-9 min-w-0 grow"
-              :src="`/api/notes/${note.id}/audio`"
+              :src="audioSrc(note)"
             />
             <UBadge v-if="status" :color="status.color" variant="subtle" :icon="status.icon" size="sm">
               {{ status.label }}

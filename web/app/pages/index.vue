@@ -4,6 +4,7 @@ import type { Card, Column, Note } from '~/types'
 const { notes, load: loadNotes, create } = useNotes()
 const { noteId, cardId, openNote, openCard } = useModals()
 const toast = useToast()
+const mobile = useIsMobile()
 
 const columns = ref<Column[]>([])
 const loadError = ref('')
@@ -117,7 +118,7 @@ async function renameColumn(id: bigint, title: string) {
 }
 
 async function removeColumn(id: bigint) {
-  if (!confirm('Удалить колонку вместе с карточками?')) return
+  if (!await askConfirm({ title: 'Удалить колонку?', description: 'Карточки в ней тоже исчезнут.' })) return
   await boardRpc.deleteColumn({ id })
   await load()
   toast.add({ title: 'Колонка удалена', icon: 'i-lucide-trash-2', color: 'success' })
@@ -154,7 +155,7 @@ onBeforeUnmount(() => { if (commitTimer) clearTimeout(commitTimer) })
       <UAlert v-if="loadError" color="error" variant="subtle" :description="loadError" class="m-4" />
 
       <!-- Колонки во всю высоту панели, лишние уезжают вбок. -->
-      <div class="flex h-full min-h-0 items-stretch gap-3 overflow-x-auto p-4 sm:p-6">
+      <div class="flex h-full min-h-0 snap-x snap-mandatory items-stretch gap-3 overflow-x-auto p-4 sm:snap-none sm:p-6">
         <BoardColumn
           v-for="c in columns"
           :key="String(c.id)"
@@ -168,7 +169,7 @@ onBeforeUnmount(() => { if (commitTimer) clearTimeout(commitTimer) })
           @remove-column="removeColumn"
         />
 
-        <div class="h-fit w-56 shrink-0 rounded-lg border border-dashed border-default p-2.5">
+        <div class="h-fit w-[82vw] max-w-56 shrink-0 snap-start rounded-lg border border-dashed border-default p-2.5 sm:w-56">
           <UInput
             v-model="newColumn"
             size="sm"
@@ -182,7 +183,7 @@ onBeforeUnmount(() => { if (commitTimer) clearTimeout(commitTimer) })
 
       <CardModal :card="openedCard" @changed="load" />
 
-      <UModal v-model:open="pickerOpen" title="Задачу на доску">
+      <UModal v-model:open="pickerOpen" title="Задачу на доску" :fullscreen="mobile">
         <template #body>
           <div class="flex flex-col gap-3">
             <UInput

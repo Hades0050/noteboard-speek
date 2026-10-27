@@ -6,3 +6,18 @@
 .kcard.dragging {
   opacity: .4;
 }
+
+/* Карточка, взятая долгим нажатием: видно, что палец её держит. */
+.kcard.long-press {
+  outline: 2px solid var(--ui-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

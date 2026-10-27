@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { animations } from '@formkit/drag-and-drop'
 import { useDragAndDrop } from '@formkit/drag-and-drop/vue'
 import type { Card, Column } from '~/types'
 
@@ -13,10 +14,16 @@ const emit = defineEmits<{
   open: [card: Card]
 }>()
 
+// longPress: на телефоне обычное перетаскивание отбирает скролл у колонки,
+// поэтому карточка берётся удержанием.
 const [dropzone, cards] = useDragAndDrop<Card>([...props.column.cards], {
   group: 'kanban',
   dragHandle: '.handle',
   dropZoneClass: 'dragging',
+  longPress: true,
+  longPressDuration: 300,
+  longPressClass: 'long-press',
+  plugins: [animations()],
 })
 
 watch(() => props.column.cards, (v) => { cards.value = [...v] })
@@ -38,10 +45,16 @@ function commitName() {
   if (name.value.trim() && name.value !== props.column.title) emit('rename', props.column.id, name.value.trim())
   else name.value = props.column.title
 }
+
+// Двойного клика на тач-экране нет, поэтому переименование и удаление — в меню.
+const menu = [[
+  { label: 'Переименовать', icon: 'i-lucide-pencil', onSelect: () => { renaming.value = true } },
+  { label: 'Удалить колонку', icon: 'i-lucide-trash-2', color: 'error' as const, onSelect: () => emit('removeColumn', props.column.id) },
+]]
 </script>
 
 <template>
-  <section class="flex h-full min-h-0 w-72 shrink-0 flex-col gap-2 rounded-lg border border-default bg-elevated/40 p-2.5">
+  <section class="flex h-full min-h-0 w-[82vw] max-w-72 shrink-0 snap-start flex-col gap-2 rounded-lg border border-default bg-elevated/40 p-2.5 sm:w-72">
     <header class="flex min-w-0 shrink-0 items-center gap-1.5">
       <UInput
         v-if="renaming"
@@ -61,14 +74,9 @@ function commitName() {
         {{ column.title }}
       </h2>
       <UBadge :label="String(cards.length)" color="neutral" variant="subtle" size="sm" />
-      <UButton
-        icon="i-lucide-x"
-        size="xs"
-        color="neutral"
-        variant="ghost"
-        aria-label="Удалить колонку"
-        @click="emit('removeColumn', column.id)"
-      />
+      <UDropdownMenu :items="menu">
+        <UButton icon="i-lucide-ellipsis" size="xs" color="neutral" variant="ghost" aria-label="Меню колонки" />
+      </UDropdownMenu>
     </header>
 
     <!-- Скролл у каждой колонки свой: длинная колонка не тянет вниз соседей. -->
@@ -82,7 +90,7 @@ function commitName() {
         <div class="flex min-w-0 items-center gap-1.5">
           <UIcon
             name="i-lucide-grip-vertical"
-            class="handle size-4 shrink-0 cursor-grab text-dimmed active:cursor-grabbing"
+            class="handle -m-1.5 box-content size-4 shrink-0 cursor-grab p-1.5 text-dimmed active:cursor-grabbing"
             @click.stop
           />
           <UIcon

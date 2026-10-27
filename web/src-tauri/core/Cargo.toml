@@ -1,0 +1,16 @@
+[package]
+name = "noteboard-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rusqlite = { version = "0.40", features = ["bundled", "functions"] }
+sherpa-onnx = "1.13"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+regex = "1"
+ureq = "2"
+prost = "0.14"
+
+[build-dependencies]
+prost-build = "0.14"
+protox = "0.9"

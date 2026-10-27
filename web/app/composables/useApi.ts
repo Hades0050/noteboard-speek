@@ -1,3 +1,5 @@
+import type { Note } from '~/types'
+
 export function api<T>(path: string, opts: Record<string, unknown> = {}): Promise<T> {
   return $fetch<T>(`/api${path}`, opts as never)
 }
@@ -23,4 +25,10 @@ export function stripHtml(html: string): string {
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
+}
+
+// Аудио: в вебе его отдаёт Go, в приложении файл лежит на диске и открывается
+// через asset protocol.
+export function audioSrc(note: Note): string {
+  return isTauri() ? mediaSrc(note.audioPath) : `/api/notes/${note.id}/audio`
 }

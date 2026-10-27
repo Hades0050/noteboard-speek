@@ -5,6 +5,7 @@ README.md
 web/node_modules
 web/.nuxt
 web/.output
+web/src-tauri/
 internal/webui/dist
 _legacy/
 .playwright-mcp

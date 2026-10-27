@@ -90,5 +90,7 @@ function preview(text: string) {
     </UDashboardGroup>
 
     <NoteModal />
+    <ModelGate />
+    <ConfirmDialog />
   </UApp>
 </template>

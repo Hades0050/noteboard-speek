@@ -42,9 +42,13 @@ export function useNotes() {
   // Загрузка файлов остаётся на REST: браузерный Connect не умеет стримить
   // тело запроса, а гнать мегабайты аудио в base64 внутри JSON — плохая идея.
   async function uploadAudio(id: bigint, blob: Blob) {
-    const form = new FormData()
-    form.append('audio', blob, 'voice.webm')
-    await api(`/notes/${id}/audio`, { method: 'POST', body: form })
+    if (isTauri()) {
+      await attachAudioTauri(id, blob)
+    } else {
+      const form = new FormData()
+      form.append('audio', blob, 'voice.webm')
+      await api(`/notes/${id}/audio`, { method: 'POST', body: form })
+    }
     await load()
   }
 

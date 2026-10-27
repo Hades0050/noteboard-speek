@@ -17,9 +17,14 @@ async function uploadImage(file: File) {
   uploading.value = true
   uploadError.value = ''
   try {
-    const form = new FormData()
-    form.append('file', file, file.name || 'image.png')
-    const { url } = await api<{ url: string }>('/uploads', { method: 'POST', body: form })
+    let url: string
+    if (isTauri()) {
+      url = await uploadImageTauri(file)
+    } else {
+      const form = new FormData()
+      form.append('file', file, file.name || 'image.png')
+      url = (await api<{ url: string }>('/uploads', { method: 'POST', body: form })).url
+    }
     editor.value?.chain().focus().setImage({ src: url }).run()
   } catch (e) {
     uploadError.value = (e as Error).message
@@ -79,17 +84,24 @@ function onPick(e: Event) {
   input.value = ''
 }
 
+const linkOpen = ref(false)
+const linkHref = ref('')
+
 function setLink() {
   const ed = editor.value
   if (!ed) return
-  const prev = ed.getAttributes('link').href as string | undefined
-  const href = window.prompt('Ссылка', prev ?? 'https://')
-  if (href === null) return
-  if (href === '') {
-    ed.chain().focus().extendMarkRange('link').unsetLink().run()
-    return
-  }
-  ed.chain().focus().extendMarkRange('link').setLink({ href }).run()
+  linkHref.value = (ed.getAttributes('link').href as string | undefined) ?? 'https://'
+  linkOpen.value = true
+}
+
+function applyLink() {
+  const ed = editor.value
+  linkOpen.value = false
+  if (!ed) return
+  const href = linkHref.value.trim()
+  const chain = ed.chain().focus().extendMarkRange('link')
+  if (href) chain.setLink({ href }).run()
+  else chain.unsetLink().run()
 }
 
 type Tool = { icon: string, title: string, run: () => void, active?: () => boolean }
@@ -145,6 +157,28 @@ defineExpose({
     <p v-if="uploadError" class="px-3 pb-2 text-xs text-error">
       {{ uploadError }}
     </p>
+
+    <UModal v-model:open="linkOpen" title="Ссылка" description="Пустое поле убирает ссылку.">
+      <template #body>
+        <UInput
+          v-model="linkHref"
+          class="w-full"
+          placeholder="https://"
+          autofocus
+          @keydown.enter.prevent="applyLink"
+        />
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="linkOpen = false">
+            Отмена
+          </UButton>
+          <UButton @click="applyLink">
+            Применить
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 

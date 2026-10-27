@@ -5,6 +5,7 @@ import type { Card } from '~/types'
 // в задаче — карточку под это можно превратить кнопкой «Сделать задачей».
 const props = defineProps<{ card: Card | null }>()
 const emit = defineEmits<{ changed: [] }>()
+const mobile = useIsMobile()
 
 const { closeModal, openNote } = useModals()
 const { create } = useNotes()
@@ -66,7 +67,7 @@ async function promote() {
 </script>
 
 <template>
-  <UModal v-model:open="open" :title="title || 'Карточка'">
+  <UModal v-model:open="open" :title="title || 'Карточка'" :fullscreen="mobile">
     <template #body>
       <div class="space-y-3">
         <UInput v-model="title" placeholder="Заголовок" size="lg" autofocus class="w-full" />

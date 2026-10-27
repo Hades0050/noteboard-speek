@@ -29,6 +29,9 @@ web/.cache/
 internal/webui/dist/*
 !internal/webui/dist/.gitkeep
 
+# Rust / Tauri
+web/src-tauri/target/
+
 # Инструменты и временные артефакты
 .playwright-mcp/
 _legacy/

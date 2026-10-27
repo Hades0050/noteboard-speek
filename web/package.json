@@ -15,8 +15,8 @@
     "@iconify-json/lucide": "^1.2.135",
     "@nuxt/ui": "^4",
     "@tailwindcss/typography": "^0.5.20",
+    "@tauri-apps/api": "^2",
     "@tiptap/extension-image": "^3.31.3",
-    "@tiptap/extension-link": "^3.31.3",
     "@tiptap/extension-placeholder": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "@tiptap/vue-3": "^3.31.3",
@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@bufbuild/protoc-gen-es": "^2.15.0",
+    "@tauri-apps/cli": "^2",
     "typescript": "^7.0.2"
   }
 }
